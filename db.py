@@ -1,9 +1,9 @@
 from arango import ArangoClient
 
-client = ArangoClient(hosts="http://localhost:8529")
+client = ArangoClient(hosts="https://b716a5707e97.arangodb.cloud:8529")
 
 db = client.db(
-    "fitness_app",
+    "Gym_db",
     username="root",
-    password="test"
+    password="O7Tk0Kt152xNkJ9SQ6fy"
 )
