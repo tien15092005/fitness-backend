@@ -1,9 +1,16 @@
+import os
 from arango import ArangoClient
+from dotenv import load_dotenv
 
-client = ArangoClient(hosts="https://b716a5707e97.arangodb.cloud:8529")
+# Load biến môi trường từ file .env (chỉ dùng local)
+load_dotenv()
+
+client = ArangoClient(
+    hosts=os.environ.get("ARANGO_HOST")
+)
 
 db = client.db(
-    "Gym_db",
-    username="root",
-    password="O7Tk0Kt152xNkJ9SQ6fy"
+    os.environ.get("ARANGO_DB"),
+    username=os.environ.get("ARANGO_USER"),
+    password=os.environ.get("ARANGO_PASSWORD")
 )
