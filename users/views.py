@@ -1,5 +1,6 @@
 import jwt
 import datetime
+import hashlib
 from functools import wraps
 
 from rest_framework.decorators import api_view
@@ -10,8 +11,13 @@ from db import db
 
 
 # =====================
-# JWT UTILITIES
+# UTILITIES
 # =====================
+
+def hash_password(password):
+    """MD5 hash - matching existing DB format"""
+    return hashlib.md5(password.encode()).hexdigest()
+
 
 def generate_token(user_id):
     payload = {
@@ -49,10 +55,6 @@ def jwt_required(f):
     return decorated
 
 
-# =====================
-# DB HEALTH CHECK
-# =====================
-
 def check_db():
     if db is None:
         return Response({"error": "Database connection failed"}, status=503)
@@ -64,26 +66,85 @@ def check_db():
 # =====================
 
 @api_view(['POST'])
-def login(request):
-    username = request.data.get("username")
+def signup(request):
+    user_name = request.data.get("user_name")
+    email = request.data.get("email")
     password = request.data.get("password")
+    gender = request.data.get("gender", "")
 
-    if not username or not password:
-        return Response({"error": "Missing username or password"}, status=400)
+    if not user_name or not email or not password:
+        return Response({"error": "Missing user_name, email or password"}, status=400)
 
     err = check_db()
     if err:
         return err
 
     try:
+        # Check username đã tồn tại chưa
+        check_query = """
+        FOR u IN Users
+            FILTER u.user_name == @user_name OR u.email == @email
+            RETURN u
+        """
+        cursor = db.aql.execute(check_query, bind_vars={
+            "user_name": user_name,
+            "email": email
+        })
+        if list(cursor):
+            return Response({"error": "Username or email already exists"}, status=409)
+
+        # Tạo user mới
+        hashed = hash_password(password)
+        insert_query = """
+        INSERT {
+            user_name: @user_name,
+            email: @email,
+            hashed_password: @hashed_password,
+            gender: @gender
+        } INTO Users
+        RETURN NEW
+        """
+        cursor = db.aql.execute(insert_query, bind_vars={
+            "user_name": user_name,
+            "email": email,
+            "hashed_password": hashed,
+            "gender": gender
+        })
+        new_user = list(cursor)[0]
+        token = generate_token(new_user["_key"])
+
+        return Response({
+            "message": "Signup successful",
+            "user_id": new_user["_key"],
+            "token": token
+        }, status=201)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(['POST'])
+def login(request):
+    user_name = request.data.get("user_name")
+    password = request.data.get("password")
+
+    if not user_name or not password:
+        return Response({"error": "Missing user_name or password"}, status=400)
+
+    err = check_db()
+    if err:
+        return err
+
+    try:
+        hashed = hash_password(password)
         query = """
         FOR u IN Users
-            FILTER u.username == @username AND u.password == @password
+            FILTER u.user_name == @user_name AND u.hashed_password == @hashed_password
             RETURN u
         """
         cursor = db.aql.execute(query, bind_vars={
-            "username": username,
-            "password": password
+            "user_name": user_name,
+            "hashed_password": hashed
         })
         result = list(cursor)
 

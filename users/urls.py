@@ -6,20 +6,27 @@ from .views import (
     user_settings,
     get_user_history,
     login,
+    signup,
     get_all_courses,
     get_course_detail,
     get_courses_by_goal,
 )
 
 urlpatterns = [
+    # Auth
+    path('login/', login),
+    path('signup/', signup),
+
+    # Exercises
     path('exercises/', get_all_exercises),
     path('exercises/search/', search_exercise),
     path('exercises/<str:exercise_id>/', get_exercise_detail),
 
+    # Users
     path('users/<str:user_id>/settings/', user_settings),
     path('users/<str:user_id>/history/', get_user_history),
-    path('login/', login),
 
+    # Courses
     path('courses/', get_all_courses),
     path('courses/goal/', get_courses_by_goal),
     path('courses/<str:course_id>/', get_course_detail),
