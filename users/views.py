@@ -125,11 +125,11 @@ def signup(request):
 
 @api_view(['POST'])
 def login(request):
-    user_name = request.data.get("user_name")
+    email = request.data.get("email")        # đổi user_name → email
     password = request.data.get("password")
 
-    if not user_name or not password:
-        return Response({"error": "Missing user_name or password"}, status=400)
+    if not email or not password:
+        return Response({"error": "Missing email or password"}, status=400)
 
     err = check_db()
     if err:
@@ -139,11 +139,11 @@ def login(request):
         hashed = hash_password(password)
         query = """
         FOR u IN Users
-            FILTER u.user_name == @user_name AND u.hashed_password == @hashed_password
+            FILTER u.email == @email AND u.hashed_password == @hashed_password
             RETURN u
         """
         cursor = db.aql.execute(query, bind_vars={
-            "user_name": user_name,
+            "email": email,                  # đổi user_name → email
             "hashed_password": hashed
         })
         result = list(cursor)
