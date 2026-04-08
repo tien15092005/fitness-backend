@@ -2,15 +2,21 @@ import os
 from arango import ArangoClient
 from dotenv import load_dotenv
 
-# Load biến môi trường từ file .env (chỉ dùng local)
 load_dotenv()
 
-client = ArangoClient(
-    hosts=os.environ.get("ARANGO_HOST")
-)
+def get_db():
+    try:
+        client = ArangoClient(
+            hosts=os.environ.get("ARANGO_HOST", "https://qrywlgjahp.us14.qoddiapp.com:443")
+        )
+        db = client.db(
+            os.environ.get("ARANGO_DB", "fitness_app"),
+            username=os.environ.get("ARANGO_USER", "root"),
+            password=os.environ.get("ARANGO_PASSWORD", "")
+        )
+        return db
+    except Exception as e:
+        print(f"[DB ERROR] Cannot connect to ArangoDB: {e}")
+        return None
 
-db = client.db(
-    os.environ.get("ARANGO_DB"),
-    username=os.environ.get("ARANGO_USER"),
-    password=os.environ.get("ARANGO_PASSWORD")
-)
+db = get_db()
