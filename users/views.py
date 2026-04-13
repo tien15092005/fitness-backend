@@ -120,7 +120,18 @@ def signup(request):
         }, status=201)
 
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        error_msg = str(e)
+
+        if "user_name" in error_msg:
+            return Response({"error": "Username must be at least 3 characters"}, status=400)
+        elif "email" in error_msg:
+            return Response({"error": "Invalid email format"}, status=400)
+        elif "gender" in error_msg:
+            return Response({"error": "Gender must be 'male' or 'female'"}, status=400)
+        elif "thiếu trường" in error_msg or "missing" in error_msg.lower():
+            return Response({"error": "Please fill in all required fields"}, status=400)
+        else:
+            return Response({"error": "Signup failed, please try again"}, status=500)
 
 
 @api_view(['POST'])
