@@ -167,9 +167,14 @@ def login(request):
 
         return Response({
             "message": "Login successful",
-            "user_id": user["_key"],
             "token": token,
-            "expires_in": f"{settings.JWT_EXPIRY_HOURS} hours"
+            "expires_in": f"{settings.JWT_EXPIRY_HOURS} hours",
+            "user": {
+                "user_id": user["_key"],
+                "user_name": user.get("user_name"),
+                "email": user.get("email"),
+                "gender": user.get("gender"),
+            }
         })
 
     except Exception as e:
@@ -231,7 +236,7 @@ def search_exercise(request):
     try:
         query = """
         FOR e IN Exercises
-            FILTER CONTAINS(LOWER(e.Title), LOWER(@name))
+            FILTER CONTAINS(LOWER(e.title), LOWER(@name))
             RETURN e
         """
         cursor = db.aql.execute(query, bind_vars={"name": name})
@@ -331,11 +336,11 @@ def get_all_courses(request):
         for c in cursor:
             result.append({
                 "id": c.get("_key"),
-                "title": c.get("Title"),
-                "description": c.get("Description"),
-                "difficulty": c.get("Difficulty"),
-                "duration": c.get("Duration"),
-                "goal": c.get("Goal"),
+                "title": c.get("title"),
+                "description": c.get("description"),
+                "difficulty": c.get("difficulty"),
+                "duration": c.get("duration"),
+                "goal": c.get("goal"),
             })
 
         return Response(result)
@@ -380,7 +385,7 @@ def get_courses_by_goal(request):
     try:
         query = """
         FOR c IN Courses
-            FILTER LOWER(c.Goal) == LOWER(@goal)
+            FILTER LOWER(c.goal) == LOWER(@goal)
             RETURN c
         """
         cursor = db.aql.execute(query, bind_vars={"goal": goal})
