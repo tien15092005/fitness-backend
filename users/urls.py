@@ -10,6 +10,7 @@ from .views import (
     get_all_courses,
     get_course_detail,
     get_courses_by_goal,
+    get_exercises_by_type,
 )
 
 urlpatterns = [
@@ -20,6 +21,7 @@ urlpatterns = [
     # Exercises
     path('exercises/', get_all_exercises),
     path('exercises/search/', search_exercise),
+    path('exercises/type/', get_exercises_by_type),
     path('exercises/<str:exercise_id>/', get_exercise_detail),
 
     # Users

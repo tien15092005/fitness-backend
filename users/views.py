@@ -393,3 +393,26 @@ def get_courses_by_goal(request):
         return Response(list(cursor))
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+@api_view(['GET'])
+def get_exercises_by_type(request):
+    type = request.GET.get("type")
+
+    if not type:
+        return Response({"error": "Missing type parameter"}, status=400)
+
+    err = check_db()
+    if err:
+        return err
+
+    try:
+        query = """
+        FOR e IN Exercises
+            FILTER LOWER(e.type) == LOWER(@type)
+            RETURN e
+        """
+        cursor = db.aql.execute(query, bind_vars={"type": type})
+        return Response(list(cursor))
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
