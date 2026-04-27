@@ -174,6 +174,7 @@ def login(request):
                 "user_name": user.get("user_name"),
                 "email": user.get("email"),
                 "gender": user.get("gender"),
+                "avatar": user.get("avatar"),
             }
         })
 
