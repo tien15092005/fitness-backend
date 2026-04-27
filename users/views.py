@@ -356,6 +356,7 @@ def get_course_detail(request, course_id):
         return err
 
     try:
+        # Lấy thông tin course
         query = """
         FOR c IN Courses
             FILTER c._key == @id
@@ -367,7 +368,23 @@ def get_course_detail(request, course_id):
         if not result:
             return Response({"error": "Course not found"}, status=404)
 
-        return Response(result[0])
+        course = result[0]
+
+        # Lấy exercises liên quan qua edge 'has'
+        exercise_query = """
+        FOR v, e IN 1..1 OUTBOUND @course has
+            RETURN MERGE(v, {
+                order: e.Order,
+                sets: e.Sets,
+                reps: e.Reps
+            })
+        """
+        exercise_cursor = db.aql.execute(exercise_query, bind_vars={
+            "course": f"Courses/{course_id}"
+        })
+        course["exercises"] = list(exercise_cursor)
+
+        return Response(course)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
