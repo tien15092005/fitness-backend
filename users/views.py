@@ -342,6 +342,7 @@ def get_all_courses(request):
                 "difficulty": c.get("difficulty"),
                 "duration": c.get("duration"),
                 "goal": c.get("goal"),
+                "thumbnail": c.get("thumbnail"),
             })
 
         return Response(result)
