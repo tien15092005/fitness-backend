@@ -1,4 +1,5 @@
 from django.urls import path
+from .analysis_views import upload_video, check_status, receive_result
 from .views import (
     get_all_exercises,
     get_exercise_detail,
@@ -32,4 +33,9 @@ urlpatterns = [
     path('courses/', get_all_courses),
     path('courses/goal/', get_courses_by_goal),
     path('courses/<str:course_id>/', get_course_detail),
+    path('analysis/upload/', upload_video),
+    path('analysis/<str:job_id>/status/', check_status),
+    path('analysis/<str:job_id>/result/', receive_result),
+
+
 ]
