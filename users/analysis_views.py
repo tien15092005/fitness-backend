@@ -41,7 +41,7 @@ def upload_video(request):
         # Gọi AI service
         try:
             requests.post(
-                f"{settings.AI_SERVICE_URL}/analyze/",
+                f"{settings.AI_SERVICE_URL}/process",
                 json={
                     "job_id": job_id,
                     "video_url": video_url,
