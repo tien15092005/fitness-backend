@@ -65,22 +65,26 @@ def check_db():
 # AUTH
 # =====================
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+import traceback
+
 @api_view(['POST'])
 def signup(request):
     user_name = request.data.get("user_name")
     email = request.data.get("email")
     password = request.data.get("password")
-    gender = request.data.get("gender", "")
+    gender = request.data.get("gender")
+    avatar = request.data.get("avatar", "")
 
-    if not user_name or not email or not password:
-        return Response({"error": "Missing user_name, email or password"}, status=400)
+    if not user_name or not email or not password or not gender:
+        return Response({"error": "Missing user_name, email, password or gender"}, status=400)
 
     err = check_db()
     if err:
         return err
 
     try:
-        # Check username đã tồn tại chưa
         check_query = """
         FOR u IN Users
             FILTER u.user_name == @user_name OR u.email == @email
@@ -90,26 +94,31 @@ def signup(request):
             "user_name": user_name,
             "email": email
         })
+
         if list(cursor):
             return Response({"error": "Username or email already exists"}, status=409)
 
-        # Tạo user mới
         hashed = hash_password(password)
+
         insert_query = """
         INSERT {
             user_name: @user_name,
             email: @email,
             hashed_password: @hashed_password,
-            gender: @gender
+            gender: @gender,
+            avatar: @avatar
         } INTO Users
         RETURN NEW
         """
+
         cursor = db.aql.execute(insert_query, bind_vars={
             "user_name": user_name,
             "email": email,
             "hashed_password": hashed,
-            "gender": gender
+            "gender": gender,
+            "avatar": avatar
         })
+
         new_user = list(cursor)[0]
         token = generate_token(new_user["_key"])
 
@@ -120,19 +129,24 @@ def signup(request):
         }, status=201)
 
     except Exception as e:
+        # DEBUG FULL ERROR
+        traceback.print_exc()
         error_msg = str(e)
+        print("ERROR MESSAGE:", error_msg)
 
-        if "user_name" in error_msg:
+        if "user_name" in error_msg and "minLength" in error_msg:
             return Response({"error": "Username must be at least 3 characters"}, status=400)
-        elif "email" in error_msg:
+        elif "email" in error_msg and "pattern" in error_msg:
             return Response({"error": "Invalid email format"}, status=400)
-        elif "gender" in error_msg:
+        elif "gender" in error_msg and "enum" in error_msg:
             return Response({"error": "Gender must be 'male' or 'female'"}, status=400)
-        elif "thiếu trường" in error_msg or "missing" in error_msg.lower():
+        elif "avatar" in error_msg:
             return Response({"error": "Please fill in all required fields"}, status=400)
         else:
-            return Response({"error": "Signup failed, please try again"}, status=500)
-
+            return Response({
+                "error": "Signup failed",
+                "details": error_msg   # 👈 trả chi tiết để debug
+            }, status=500)
 
 @api_view(['POST'])
 def login(request):
