@@ -456,7 +456,7 @@ def get_all_poses(request):
         return err
 
     try:
-        query = "FOR p IN Poses RETURN p._key"
+        query = "FOR p IN Poses RETURN p"
         cursor = db.aql.execute(query)
         return Response(list(cursor))
     except Exception as e:
