@@ -448,3 +448,16 @@ def get_exercises_by_type(request):
         return Response(list(cursor))
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+@api_view(['GET'])
+def get_all_poses(request):
+    err = check_db()
+    if err:
+        return err
+
+    try:
+        query = "FOR p IN Poses RETURN p._key"
+        cursor = db.aql.execute(query)
+        return Response(list(cursor))
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

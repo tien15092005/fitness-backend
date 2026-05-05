@@ -14,17 +14,13 @@ jobs = {}
 
 @api_view(['POST'])
 def upload_video(request):
-    """
-    FE gửi video_url đã upload sẵn lên R2
-    Body: { "video_url": "...", "exercise": "squat", "type": "video", "user_id": 5 }
-    """
     video_url = request.data.get("video_url")
     exercise = request.data.get("exercise")
-    video_type = request.data.get("type")
+    mode = request.data.get("mode")
     user_id = request.data.get("user_id")
 
-    if not video_url or not exercise or not user_id:
-        return Response({"error": "Missing video_url, exercise or user_id"}, status=400)
+    if not video_url or not exercise or not mode or not user_id:
+        return Response({"error": "Missing video_url, exercise, mode or user_id"}, status=400)
 
     try:
         job_id = str(uuid.uuid4())
@@ -33,12 +29,11 @@ def upload_video(request):
             "status": "processing",
             "result_url": None,
             "exercise": exercise,
-            "type": video_type,
+            "mode": mode,
             "user_id": user_id,
             "video_url": video_url,
         }
 
-        # Gọi AI service
         try:
             requests.post(
                 f"{settings.AI_SERVICE_URL}/process",
@@ -46,7 +41,7 @@ def upload_video(request):
                     "job_id": job_id,
                     "video_url": video_url,
                     "exercise": exercise,
-                    "type": video_type,
+                    "mode": mode,
                     "user_id": user_id,
                     "callback_url": f"{settings.DJANGO_BASE_URL}/api/analysis/{job_id}/result/",
                 },

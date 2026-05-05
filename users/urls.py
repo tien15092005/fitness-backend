@@ -12,6 +12,7 @@ from .views import (
     get_course_detail,
     get_courses_by_goal,
     get_exercises_by_type,
+    get_all_poses,
 )
 
 urlpatterns = [
@@ -36,6 +37,7 @@ urlpatterns = [
     path('analysis/upload/', upload_video),
     path('analysis/<str:job_id>/status/', check_status),
     path('analysis/<str:job_id>/result/', receive_result),
+    path('poses/', get_all_poses),
 
 
 ]
